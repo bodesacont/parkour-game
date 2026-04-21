@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parkour Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; background: #87CEEB; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let player = { x: 50, y: canvas.height - 150, width: 50, height: 50, dy: 0, jumping: false, flipType: '' };
+        let terrain = [];
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'ArrowRight':
+                    player.x += 5;
+                    break;
+                case 'ArrowLeft':
+                    player.x -= 5;
+                    break;
+                case 'ArrowUp':
+                    if (!player.jumping) {
+                        player.dy = -15;
+                        player.jumping = true;
+                    }
+                    break;
+                case 'b':
+                case 'f':
+                case 'g':
+                case 'v':
+                    player.flipType = event.key;
+                    break;
+            }
+        });
+
+        function generateTerrain() {
+            let height = Math.random() * 100 + 50;
+            terrain.push({ x: canvas.width, y: canvas.height - height, width: canvas.width / 10, height: height });
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            if (player.flipType) {
+                ctx.fillText(`Flip: ${player.flipType}`, player.x, player.y - 10);
+            }
+        }
+
+        function drawTerrain() {
+            ctx.fillStyle = 'green';
+            terrain.forEach((t) => {
+                ctx.fillRect(t.x, t.y, t.width, t.height);
+            });
+        }
+
+        function update() {
+            player.y += player.dy;
+            player.dy += 1; // Gravity
+            if (player.y + player.height >= canvas.height) {
+                player.y = canvas.height - player.height;
+                player.jumping = false;
+            }
+            terrain.forEach((t) => {
+                t.x -= 5; // Move terrain left
+            });
+            if (terrain[0] && terrain[0].x < -terrain[0].width) {
+                terrain.shift();
+                generateTerrain();
+            }
+            drawPlayer();
+            drawTerrain();
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            update();
+            requestAnimationFrame(gameLoop);
+        }
+
+        generateTerrain();
+        gameLoop();
+    </script>
+</body>
+</html>
